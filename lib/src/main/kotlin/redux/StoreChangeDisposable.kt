@@ -1,5 +1,6 @@
 package redux
 
+import io.reactivex.disposables.Disposable
 import java.util.concurrent.atomic.AtomicBoolean
 
 /*
@@ -18,17 +19,17 @@ import java.util.concurrent.atomic.AtomicBoolean
  * limitations under the License.
  */
 
-abstract class StoreChangeSubscription : rx.Subscription {
+abstract class StoreChangeDisposable : Disposable {
 
-    private val unsubscribed = AtomicBoolean()
+    private val disposed = AtomicBoolean()
 
-    protected abstract fun onUnsubscribe()
+    protected abstract fun onDispose()
 
-    override fun isUnsubscribed() = unsubscribed.get()
+    override fun isDisposed() = disposed.get()
 
-    override fun unsubscribe() {
-        if (unsubscribed.compareAndSet(false, true)) {
-            onUnsubscribe()
+    override fun dispose() {
+        if (disposed.compareAndSet(false, true)) {
+            onDispose()
         }
     }
 

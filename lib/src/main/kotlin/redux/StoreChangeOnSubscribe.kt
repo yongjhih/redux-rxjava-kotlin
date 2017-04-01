@@ -1,7 +1,8 @@
 package redux
 
+import io.reactivex.ObservableEmitter
 import redux.api.Store
-import rx.Observable.OnSubscribe
+import io.reactivex.ObservableOnSubscribe
 
 /*
  * Copyright (C) 2016 Michael Pardo
@@ -19,18 +20,18 @@ import rx.Observable.OnSubscribe
  * limitations under the License.
  */
 
-class StoreChangeOnSubscribe<S : Any>(private val store: Store<S>) : OnSubscribe<S> {
+class StoreChangeOnSubscribe<S : Any>(private val store: Store<S>) : ObservableOnSubscribe<S> {
 
-    override fun call(subscriber: rx.Subscriber<in S>) {
-        val subscription = store.subscribe {
-            if (!subscriber.isUnsubscribed) {
-                subscriber.onNext(store.getState())
+    override fun subscribe(emitter: ObservableEmitter<S>) {
+        val disposable = store.subscribe {
+            if (!emitter.isDisposed) {
+                emitter.onNext(store.state)
             }
         }
 
-        subscriber.add(object : StoreChangeSubscription() {
-            override fun onUnsubscribe() {
-                subscription.unsubscribe()
+        emitter.setDisposable(object : StoreChangeDisposable() {
+            override fun onDispose() {
+                disposable.unsubscribe()
             }
         })
     }
